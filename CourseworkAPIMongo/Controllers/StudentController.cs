@@ -1,33 +1,31 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CourseworkAPIMongo.Models;
 using CourseworkAPIMongo.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CourseworkAPIMongo.Controllers
 {
-    public class StudentCotroller
-    {
-        [Microsoft.AspNetCore.Components.Route("api/[controller]")]
+
         [ApiController]
+        [Route("students")]
         public class StudentsController : ControllerBase
         {
             private readonly StudentService _studentService;
 
-            public StudentsController(StudentService studentsService)
-            {
-                _studentService = studentsService;
-            }
+            public StudentsController(StudentService studentService) =>
+                _studentService = studentService;
 
             [HttpGet]
-            public ActionResult<List<Student>> Get() =>
-                _studentService.Get();
+            public async Task<List<Student>> Get() =>
+                await _studentService.GetAsync();
 
-            [HttpGet("{id:length(24)}", Name = "GetStudent")]
-            public ActionResult<Student> Get(string id)
+            [HttpGet("{id:length(24)}")]
+            public async Task<ActionResult<Student>> Get(string id)
             {
-                var student = _studentService.Get(id);
+                var student = await _studentService.GetAsync(id);
 
-                if (student == null)
+                if (student is null)
                 {
                     return NotFound();
                 }
@@ -36,42 +34,44 @@ namespace CourseworkAPIMongo.Controllers
             }
 
             [HttpPost]
-            public ActionResult<Student> Create(Student student)
+            public async Task<IActionResult> Post(Student newStudent)
             {
-                _studentService.Create(student);
+                await _studentService.CreateAsync(newStudent);
 
-                return CreatedAtRoute("GetStudent", new { id = student.Id.ToString() }, student);
+                return CreatedAtAction(nameof(Get), new { id = newStudent.Id }, newStudent);
             }
 
             [HttpPut("{id:length(24)}")]
-            public IActionResult Update(string id, Student studentIn)
+            public async Task<IActionResult> Update(string id, Student updatedStudent)
             {
-                var student = _studentService.Get(id);
+                var student = await _studentService.GetAsync(id);
 
-                if (student == null)
+                if (student is null)
                 {
                     return NotFound();
                 }
 
-                _studentService.Update(id, studentIn);
+                updatedStudent.Id = student.Id;
+
+                await _studentService.UpdateAsync(id, updatedStudent);
 
                 return NoContent();
             }
 
             [HttpDelete("{id:length(24)}")]
-            public IActionResult Delete(string id)
+            public async Task<IActionResult> Delete(string id)
             {
-                var student = _studentService.Get(id);
+                var student = await _studentService.GetAsync(id);
 
-                if (student == null)
+                if (student is null)
                 {
                     return NotFound();
                 }
 
-                _studentService.Remove(id);
+                await _studentService.RemoveAsync(id);
 
                 return NoContent();
             }
         }
-    }
+    
 }

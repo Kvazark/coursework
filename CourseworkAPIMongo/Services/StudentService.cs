@@ -1,40 +1,42 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CourseworkAPIMongo.Models;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
 namespace CourseworkAPIMongo.Services
 {
     public class StudentService
     {
-        private readonly IMongoCollection<Student> _students;
-
-        public StudentService(CourseworkDatabaseSettings settings)
+        private readonly IMongoCollection<Student> _studentCollection;
+        
+        public StudentService(
+            IOptions<CourseworkDatabaseSettings> courseworkDatabaseSettings)
         {
-            var client = new MongoClient(settings.ConnectionString);
-            var database = client.GetDatabase(settings.DatabaseName);
+            var mongoClient = new MongoClient(
+                courseworkDatabaseSettings.Value.ConnectionString);
 
-            _students = database.GetCollection<Student>(settings.StudentsCollectionName);
+            var mongoDatabase = mongoClient.GetDatabase(
+                courseworkDatabaseSettings.Value.DatabaseName);
+
+            _studentCollection = mongoDatabase.GetCollection<Student>(
+                courseworkDatabaseSettings.Value.StudentsCollectionName);
         }
+        // </snippet_ctor>
 
-        public List<Student> Get() =>
-            _students.Find(student => true).ToList();
+        public async Task<List<Student>> GetAsync() =>
+            await _studentCollection.Find(_ => true).ToListAsync();
 
-        public Student Get(string id) =>
-            _students.Find<Student>(student => student.Id == id).FirstOrDefault();
+        public async Task<Student?> GetAsync(string id) =>
+            await _studentCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 
-        public Student Create(Student student)
-        {
-            _students.InsertOne(student);
-            return student;
-        }
+        public async Task CreateAsync(Student newStudent) =>
+            await _studentCollection.InsertOneAsync(newStudent);
 
-        public void Update(string id, Student studentIn) =>
-            _students.ReplaceOne(student => student.Id == id, studentIn);
+        public async Task UpdateAsync(string id, Student updatedStudent) =>
+            await _studentCollection.ReplaceOneAsync(x => x.Id == id, updatedStudent);
 
-        public void Remove(Student studentIn) =>
-            _students.DeleteOne(student => student.Id == studentIn.Id);
-
-        public void Remove(string id) => 
-            _students.DeleteOne(student => student.Id == id);
+        public async Task RemoveAsync(string id) =>
+            await _studentCollection.DeleteOneAsync(x => x.Id == id);
     }
 }

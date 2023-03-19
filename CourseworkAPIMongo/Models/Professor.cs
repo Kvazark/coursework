@@ -14,9 +14,12 @@ namespace CourseworkAPIMongo.Models
         [BsonElement("Surname")]
         public string ProfessorSurname { get; set; }
 
-        public decimal Age { get; set; }
+        public int Age { get; set; }
 
         public string Discipline { get; set; }
+        
+        [BsonElement("index")]
+        public int Index { get; set; }
 
     }
 }

@@ -1,40 +1,42 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CourseworkAPIMongo.Models;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
 namespace CourseworkAPIMongo.Services
 {
     public class ProfessorService
     {
-        private readonly IMongoCollection<Professor> _professors;
-
-        public ProfessorService(CourseworkDatabaseSettings settings)
+        private readonly IMongoCollection<Professor> _professorCollection;
+        
+        public ProfessorService(
+            IOptions<CourseworkDatabaseSettings> courseworkDatabaseSettings)
         {
-            var client = new MongoClient(settings.ConnectionString);
-            var database = client.GetDatabase(settings.DatabaseName);
+            var mongoClient = new MongoClient(
+                courseworkDatabaseSettings.Value.ConnectionString);
 
-            _professors = database.GetCollection<Professor>(settings.ProfessorsCollectionName);
+            var mongoDatabase = mongoClient.GetDatabase(
+                courseworkDatabaseSettings.Value.DatabaseName);
+
+            _professorCollection = mongoDatabase.GetCollection<Professor>(
+                courseworkDatabaseSettings.Value.ProfessorsCollectionName);
         }
+        // </snippet_ctor>
 
-        public List<Professor> Get() =>
-            _professors.Find(professor => true).ToList();
+        public async Task<List<Professor>> GetAsync() =>
+            await _professorCollection.Find(_ => true).ToListAsync();
 
-        public Professor Get(string id) =>
-            _professors.Find<Professor>(professor => professor.Id == id).FirstOrDefault();
+        public async Task<Professor?> GetAsync(string id) =>
+            await _professorCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 
-        public Professor Create(Professor professor)
-        {
-            _professors.InsertOne(professor);
-            return professor;
-        }
+        public async Task CreateAsync(Professor newProfessor) =>
+            await _professorCollection.InsertOneAsync(newProfessor);
 
-        public void Update(string id, Professor professorIn) =>
-            _professors.ReplaceOne(professor => professor.Id == id, professorIn);
+        public async Task UpdateAsync(string id, Professor updatedProfessor) =>
+            await _professorCollection.ReplaceOneAsync(x => x.Id == id, updatedProfessor);
 
-        public void Remove(Professor professorIn) =>
-            _professors.DeleteOne(professor => professor.Id == professorIn.Id);
-
-        public void Remove(string id) => 
-            _professors.DeleteOne(professor => professor.Id == id);
+        public async Task RemoveAsync(string id) =>
+            await _professorCollection.DeleteOneAsync(x => x.Id == id);
     }
 }

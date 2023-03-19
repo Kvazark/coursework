@@ -13,6 +13,9 @@ namespace CourseworkAPIMongo.Models
 
         public string Appellation { get; set; }
 
-        public decimal Classification { get; set; }
+        public string Classification { get; set; }
+        
+        [BsonElement("index")]
+        public int Index { get; set; }
     }
 }

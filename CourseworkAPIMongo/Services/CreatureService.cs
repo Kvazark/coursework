@@ -1,40 +1,42 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CourseworkAPIMongo.Models;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
 namespace CourseworkAPIMongo.Services
 {
     public class CreatureService
     {
-        private readonly IMongoCollection<Creature> _creatures;
-
-        public CreatureService(CourseworkDatabaseSettings settings)
+        private readonly IMongoCollection<Creature> _creatureCollection;
+        
+        public CreatureService(
+            IOptions<CourseworkDatabaseSettings> courseworkDatabaseSettings)
         {
-            var client = new MongoClient(settings.ConnectionString);
-            var database = client.GetDatabase(settings.DatabaseName);
+            var mongoClient = new MongoClient(
+                courseworkDatabaseSettings.Value.ConnectionString);
 
-            _creatures = database.GetCollection<Creature>(settings.CreaturesCollectionName);
+            var mongoDatabase = mongoClient.GetDatabase(
+                courseworkDatabaseSettings.Value.DatabaseName);
+
+            _creatureCollection = mongoDatabase.GetCollection<Creature>(
+                courseworkDatabaseSettings.Value.CreaturesCollectionName);
         }
+        // </snippet_ctor>
 
-        public List<Creature> Get() =>
-            _creatures.Find(creature => true).ToList();
+        public async Task<List<Creature>> GetAsync() =>
+            await _creatureCollection.Find(_ => true).ToListAsync();
 
-        public Creature Get(string id) =>
-            _creatures.Find<Creature>(creature => creature.Id == id).FirstOrDefault();
+        public async Task<Creature?> GetAsync(string id) =>
+            await _creatureCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 
-        public Creature Create(Creature creature)
-        {
-            _creatures.InsertOne(creature);
-            return creature;
-        }
+        public async Task CreateAsync(Creature newCreature) =>
+            await _creatureCollection.InsertOneAsync(newCreature);
 
-        public void Update(string id, Creature creatureIn) =>
-            _creatures.ReplaceOne(creature => creature.Id == id, creatureIn);
+        public async Task UpdateAsync(string id, Creature updatedCreature) =>
+            await _creatureCollection.ReplaceOneAsync(x => x.Id == id, updatedCreature);
 
-        public void Remove(Creature creatureIn) =>
-            _creatures.DeleteOne(creature => creature.Id == creatureIn.Id);
-
-        public void Remove(string id) => 
-            _creatures.DeleteOne(creature => creature.Id == id);
+        public async Task RemoveAsync(string id) =>
+            await _creatureCollection.DeleteOneAsync(x => x.Id == id);
     }
 }

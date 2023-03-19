@@ -14,10 +14,13 @@ namespace CourseworkAPIMongo.Models
         [BsonElement("Surname")]
         public string StudentSurname { get; set; }
 
-        public decimal Course { get; set; }
+        public int Course { get; set; }
 
-        public string LearnedSpells { get; set; }
+        public int LearnedSpells { get; set; }
 
         public string Faculty { get; set; }
+        
+        [BsonElement("index")]
+        public int Index { get; set; }
     }
 }

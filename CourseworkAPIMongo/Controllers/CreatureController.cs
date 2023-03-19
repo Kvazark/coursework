@@ -1,79 +1,77 @@
 ﻿
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using CourseworkAPIMongo.Models;
 using CourseworkAPIMongo.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CourseworkAPIMongo.Controllers
 {
-    public class CreatureController
-    {
-        [Route("api/[controller]")]
-        [ApiController]
+    [ApiController]
+    [Route("creatures")]
         public class CreaturesController : ControllerBase
         {
             private readonly CreatureService _creatureService;
-        
-            public CreaturesController(CreatureService creatureService)
-            {
+
+            public CreaturesController(CreatureService creatureService) =>
                 _creatureService = creatureService;
-            }
-        
+
             [HttpGet]
-            public ActionResult<List<Creature>> Get() =>
-                _creatureService.Get();
-        
-            [HttpGet("{id:length(24)}", Name = "GetCreature")]
-            public ActionResult<Creature> Get(string id)
+            public async Task<List<Creature>> Get() =>
+                await _creatureService.GetAsync();
+
+            [HttpGet("{id:length(24)}")]
+            public async Task<ActionResult<Creature>> Get(string id)
             {
-                var creature = _creatureService.Get(id);
-        
-                if (creature == null)
+                var creature = await _creatureService.GetAsync(id);
+
+                if (creature is null)
                 {
                     return NotFound();
                 }
-        
+
                 return creature;
             }
-        
+
             [HttpPost]
-            public ActionResult<Creature> Create(Creature creature)
+            public async Task<IActionResult> Post(Creature newCreature)
             {
-                _creatureService.Create(creature);
-        
-                return CreatedAtRoute("GetCreature", new { id = creature.Id.ToString() }, creature);
+                await _creatureService.CreateAsync(newCreature);
+
+                return CreatedAtAction(nameof(Get), new { id = newCreature.Id }, newCreature);
             }
-        
+
             [HttpPut("{id:length(24)}")]
-            public IActionResult Update(string id, Creature creatureIn)
+            public async Task<IActionResult> Update(string id, Creature updatedCreature)
             {
-                var creature = _creatureService.Get(id);
-        
-                if (creature == null)
+                var creature = await _creatureService.GetAsync(id);
+
+                if (creature is null)
                 {
                     return NotFound();
                 }
-        
-                _creatureService.Update(id, creatureIn);
-        
+
+                updatedCreature.Id = creature.Id;
+
+                await _creatureService.UpdateAsync(id, updatedCreature);
+
                 return NoContent();
             }
-        
+
             [HttpDelete("{id:length(24)}")]
-            public IActionResult Delete(string id)
+            public async Task<IActionResult> Delete(string id)
             {
-                var creature = _creatureService.Get(id);
-        
-                if (creature == null)
+                var creature = await _creatureService.GetAsync(id);
+
+                if (creature is null)
                 {
                     return NotFound();
                 }
-        
-                _creatureService.Remove(id);
-        
+
+                await _creatureService.RemoveAsync(id);
+
                 return NoContent();
             }
         }
     }
-}
