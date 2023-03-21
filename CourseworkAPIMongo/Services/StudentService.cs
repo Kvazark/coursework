@@ -38,5 +38,9 @@ namespace CourseworkAPIMongo.Services
 
         public async Task RemoveAsync(string id) =>
             await _studentCollection.DeleteOneAsync(x => x.Id == id);
+        public async Task<Student?> AggregateAsync(int course) =>
+            await _studentCollection.Aggregate()
+                .Match(e=>e.Course == course)
+                .FirstOrDefaultAsync();
     }
 }

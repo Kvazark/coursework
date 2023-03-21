@@ -72,6 +72,12 @@ namespace CourseworkAPIMongo.Controllers
 
                 return NoContent();
             }
+            [HttpPost("{age}")]
+            public async Task<IActionResult> Aggregation(int age)
+            {
+                var result = await _professorService.AggregateAsync(age);
+                return Ok(result);
+            }
         }
 
     }

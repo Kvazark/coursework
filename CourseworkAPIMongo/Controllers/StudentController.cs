@@ -72,6 +72,12 @@ namespace CourseworkAPIMongo.Controllers
 
                 return NoContent();
             }
+            [HttpPost("{course}")]
+            public async Task<IActionResult> Aggregation(int course)
+            {
+                var result = await _studentService.AggregateAsync(course);
+                return Ok(result);
+            }
         }
     
 }

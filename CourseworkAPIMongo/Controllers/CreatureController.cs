@@ -1,5 +1,6 @@
 ﻿
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CourseworkAPIMongo.Models;
@@ -72,6 +73,12 @@ namespace CourseworkAPIMongo.Controllers
                 await _creatureService.RemoveAsync(id);
 
                 return NoContent();
+            }
+            [HttpPost("{classification}")]
+            public async Task<IActionResult> Aggregation(string classification)
+            {
+                var result = await _creatureService.AggregateAsync(classification);
+                return Ok(result);
             }
         }
     }
